@@ -11,8 +11,35 @@ static void framebufferSizeCallback(GLFWwindow* window, int width, int height)
 {
     glfwGetFramebufferSize(window, &width, &height);
     glViewport(0, 0, width, height);
-
 }
+
+static void setWireframe(const bool wireframe)
+{
+    if (wireframe)
+    {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    }
+    else
+    {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
+}
+
+bool wireframe = false;
+
+static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+    {
+        glfwSetWindowShouldClose(window, GL_TRUE);
+    }
+    else if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
+    {
+        wireframe = !wireframe;
+        setWireframe(wireframe);
+    }
+}
+
 
 int main()
 {
@@ -35,7 +62,7 @@ int main()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-    GLFWwindow* window = glfwCreateWindow(windowWidth, windowHeight, "ModernGL", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(windowWidth, windowHeight, "ModernGL [ESC: exit, SPACE: wireframe]", nullptr, nullptr);
 
     if (window == nullptr)
     {
@@ -133,16 +160,10 @@ int main()
 
     framebufferSizeCallback(window, windowWidth, windowHeight);
 
-    // Uncomment to draw in wireframe mode.
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glfwSetKeyCallback(window, keyCallback);
 
     while (!glfwWindowShouldClose(window))
     {
-        if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        {
-            glfwSetWindowShouldClose(window, true);
-        }
-
         glClearColor(0.2f, 0.3f, 0.3f,1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
