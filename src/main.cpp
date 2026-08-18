@@ -1,5 +1,4 @@
 #include <iostream>
-#include <cmath>
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
 
@@ -39,7 +38,7 @@ static void keyCallback(GLFWwindow* window, int key, int scancode, int action, i
     {
         glfwSetWindowShouldClose(window, GL_TRUE);
     }
-    else if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
+    else if (key == GLFW_KEY_F1 && action == GLFW_PRESS)
     {
         wireframe = !wireframe;
         setWireframe(wireframe);
@@ -69,7 +68,7 @@ int main()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-    GLFWwindow* window = glfwCreateWindow(windowWidth, windowHeight, "ModernGL [ESC: exit, SPACE: wireframe]", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(windowWidth, windowHeight, "ModernGL [ESC: exit, F1: wireframe]", nullptr, nullptr);
 
     if (window == nullptr)
     {
