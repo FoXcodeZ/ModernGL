@@ -1,6 +1,9 @@
 #include <iostream>
+#include <cmath>
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
+
+
 
 static int windowWidth = 1024;
 static int windowHeight = 768;
@@ -25,10 +28,13 @@ static void setWireframe(const bool wireframe)
     }
 }
 
-bool wireframe = false;
+static bool wireframe = false;
 
 static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
+    UNUSED(scancode);
+    UNUSED(action);
+    UNUSED(mods);
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
     {
         glfwSetWindowShouldClose(window, GL_TRUE);
@@ -43,14 +49,14 @@ static void keyCallback(GLFWwindow* window, int key, int scancode, int action, i
 
 int main()
 {
-    float vertices[] = {
+    constexpr float vertices[] = {
         0.5f, 0.5f, 0.0f,
         -0.5f, 0.5f, 0.0f,
         -0.5f, -0.5f, 0.0f,
         0.5f, -0.5f, 0.0f,
     };
 
-    unsigned int indicies[] = {
+    constexpr unsigned int indices[] = {
         0, 1, 3, // first triangle
         1, 2, 3, // second triangle
     };
@@ -82,12 +88,14 @@ int main()
     glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
 
 
-    const char* vertexShaderSource = ""
-        "#version 330 core\n"
+    const char* vertexShaderSource =
+        "#version 460 core\n"
         "layout (location = 0) in vec3 aPos;\n"
+        "out vec4 vertexColor;\n"
         "void main()\n"
         "{\n"
-        "    gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+        "   gl_Position = vec4(aPos, 1.0);\n"
+        "   vertexColor = vec4(0.627, 0.298, 0.71, 1.0);\n"
         "}\0";
 
     const unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -104,13 +112,15 @@ int main()
     }
     // 0.85, 0.19, 0.68
 
-    const char* fragmentShaderSource = ""
-    "#version 460 core\n"
-    "out vec4 FragColor;\n"
-    "void main()\n"
-    "{\n"
-    "    FragColor = vec4(0.85f, 0.19f, 0.68f, 1.0f);\n"
-    "}\0";
+    const char* fragmentShaderSource =
+        "#version 460 core\n"
+        "out vec4 FragColor;\n"
+        "in vec4 vertexColor;\n"
+        "uniform vec4 uniColor;\n"
+        "void main()\n"
+        "{\n"
+        "FragColor = uniColor;\n"
+        "}\0";
 
     unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragmentShader, 1, &fragmentShaderSource, nullptr);
@@ -131,8 +141,6 @@ int main()
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 
-
-
     // VAO - Vertex Array Object
     // VBO - Vertex Buffer Object
     // EBO - Element Buffer Object
@@ -147,11 +155,10 @@ int main()
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
 
-
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indicies), indicies, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), static_cast<void*>(0));
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
     glEnableVertexAttribArray(0);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -162,12 +169,23 @@ int main()
 
     glfwSetKeyCallback(window, keyCallback);
 
+    int nrAttributes;
+    glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nrAttributes);
+    std::cout << "Maximum nr of vertex attributes supported: " << nrAttributes << std::endl;
+
     while (!glfwWindowShouldClose(window))
     {
         glClearColor(0.2f, 0.3f, 0.3f,1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
+        const auto timeValue = static_cast<float>(glfwGetTime());
+        float greenValue = std::sin(timeValue) + 0.5f;
+        greenValue = std::clamp(greenValue, 0.0f, 1.0f);
+
+        const int vertexColorLocation = glGetUniformLocation(shaderProgram, "uniColor");
+
         glUseProgram(shaderProgram);
+        glUniform4fv(vertexColorLocation, 1, &greenValue);
         glBindVertexArray(vao);
         //glDrawArrays(GL_TRIANGLES, 0, 3);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);

@@ -57,13 +57,18 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 )
 
 
- if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+ if(CMAKE_BUILD_TYPE STREQUAL "Debug" )
      target_compile_options(${PROJECT_NAME} PRIVATE
-         -Wall
-         -Wextra
-         -Wpedantic
+             -Wall
+             -Wextra
+             -Wpedantic
+             -Werror
+             -Wno-gnu-anonymous-struct
+             -Wno-nested-anon-types
+             # In code: // NOLINT(cppcoreguidelines-pro-type-member-init)
      )
  endif()
+
 
 
 if(MSVC)
